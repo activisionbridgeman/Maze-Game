@@ -13,6 +13,7 @@
 #include "AudioManager.h"
 #include "Utility.h"
 #include "StateMachineExampleGame.h"
+#include "Health.h"
 
 using namespace std;
 
@@ -30,6 +31,7 @@ GameplayState::GameplayState(StateMachineExampleGame* pOwner)
 	, m_currentLevel(0)
 	, m_pLevel(nullptr)
 {
+	m_LevelNames.push_back("Level4.txt");
 	m_LevelNames.push_back("Level1.txt");
 	m_LevelNames.push_back("Level2.txt");
 	m_LevelNames.push_back("Level3.txt");
@@ -221,6 +223,20 @@ void GameplayState::HandleCollision(int newPlayerX, int newPlayerY)
 			collidedGoal->Remove();
 			m_player.SetPosition(newPlayerX, newPlayerY);
 			m_beatLevel = true;
+			break;
+		}
+		case ActorType::Health:
+		{
+			Health* collidedHealth = dynamic_cast<Health*>(collidedActor);
+			assert(collidedHealth);
+			AudioManager::GetInstance()->PlayGainLivesSound();
+			collidedHealth->Remove();
+			m_player.SetPosition(newPlayerX, newPlayerY);
+
+			if (m_player.GetLives() < 3) 
+			{
+				m_player.IncrementLives();
+			}
 			break;
 		}
 		default:

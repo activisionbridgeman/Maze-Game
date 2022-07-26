@@ -9,6 +9,7 @@
 #include "Door.h"
 #include "Goal.h"
 #include "Money.h"
+#include "Health.h"
 
 using namespace std;
 
@@ -180,6 +181,10 @@ bool Level::ConvertLevel(int* playerX, int* playerY)
 				m_pActors.push_back(new Enemy(x, y, 0, 2));
 				m_pLevelData[index] = ' '; // clear the level
 				break;
+				break;
+			case 'H':
+				m_pActors.push_back(new Health(x, y));
+				m_pLevelData[index] = ' '; // clear the level
 				break;
 			case ' ':
 				break;

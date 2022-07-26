@@ -84,6 +84,13 @@ public:
 		Beep(200, 100);
 	}
 
+	void PlayGainLivesSound()
+	{
+		if (!m_SoundOn)
+			return;
+		Beep(10000, 100);
+	}
+
 	void PlayLoseSound()
 	{
 		if (!m_SoundOn)
