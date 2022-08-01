@@ -149,7 +149,8 @@ void DisplayLegend()
 	cout << "v for vertical moving enemy" << endl;
 	cout << "h for horizontal moving enemy" << endl;
 	cout << "e for non-moving enemy" << endl;
-	cout << "H for health pack" << endl;
+	cout << "1 for small health pack" << endl;
+	cout << "3 for large health pack" << endl;
 	cout << "X for end" << endl;
 }
 

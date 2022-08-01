@@ -20,7 +20,8 @@ enum class ActorType
 	Key,
 	Money,
 	Player,
-	Health
+	Health,
+	LargeHealth
 };
 
 class PlacableActor

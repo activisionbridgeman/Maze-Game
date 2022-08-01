@@ -13,6 +13,7 @@ Player::Player()
 	, m_pCurrentKey(nullptr)
 	, m_money(0)
 	, m_lives(kStartingNumberOfLives)
+	, max_lives(m_lives)
 {
 
 }

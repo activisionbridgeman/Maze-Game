@@ -10,6 +10,7 @@
 #include "Goal.h"
 #include "Money.h"
 #include "Health.h"
+#include "LargeHealth.h"
 
 using namespace std;
 
@@ -182,8 +183,12 @@ bool Level::ConvertLevel(int* playerX, int* playerY)
 				m_pLevelData[index] = ' '; // clear the level
 				break;
 				break;
-			case 'H':
+			case '1':
 				m_pActors.push_back(new Health(x, y));
+				m_pLevelData[index] = ' '; // clear the level
+				break;
+			case '3':
+				m_pActors.push_back(new LargeHealth(x, y));
 				m_pLevelData[index] = ' '; // clear the level
 				break;
 			case ' ':

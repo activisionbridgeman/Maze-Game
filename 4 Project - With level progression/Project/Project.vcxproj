@@ -160,6 +160,7 @@
     <ClCompile Include="Health.cpp" />
     <ClCompile Include="HighScoreState.cpp" />
     <ClCompile Include="Key.cpp" />
+    <ClCompile Include="LargeHealth.cpp" />
     <ClCompile Include="Level.cpp" />
     <ClCompile Include="LoseState.cpp" />
     <ClCompile Include="MainMenuState.cpp" />
@@ -183,6 +184,7 @@
     <ClInclude Include="Health.h" />
     <ClInclude Include="HighScoreState.h" />
     <ClInclude Include="Key.h" />
+    <ClInclude Include="LargeHealth.h" />
     <ClInclude Include="Level.h" />
     <ClInclude Include="LoseState.h" />
     <ClInclude Include="MainMenuState.h" />

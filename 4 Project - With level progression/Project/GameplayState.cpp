@@ -14,6 +14,7 @@
 #include "Utility.h"
 #include "StateMachineExampleGame.h"
 #include "Health.h"
+#include "LargeHealth.h"
 
 using namespace std;
 
@@ -159,6 +160,8 @@ void GameplayState::HandleCollision(int newPlayerX, int newPlayerY)
 			collidedEnemy->Remove();
 			m_player.SetPosition(newPlayerX, newPlayerY);
 
+			// Breakpoint placed here to check that it is hit when player collides with enemy
+			// and to ensure that m_lives decrements by one
 			m_player.DecrementLives();
 			if (m_player.GetLives() < 0)
 			{
@@ -235,7 +238,21 @@ void GameplayState::HandleCollision(int newPlayerX, int newPlayerY)
 
 			if (m_player.GetLives() < 3) 
 			{
-				m_player.IncrementLives();
+				m_player.IncrementLives(collidedHealth->getHealthPoints());
+			}
+			break;
+		}
+		case ActorType::LargeHealth:
+		{
+			LargeHealth* collidedHealth = dynamic_cast<LargeHealth*>(collidedActor);
+			assert(collidedHealth);
+			AudioManager::GetInstance()->PlayGainLivesSound();
+			collidedHealth->Remove();
+			m_player.SetPosition(newPlayerX, newPlayerY);
+
+			if (m_player.GetLives() < 3)
+			{
+				m_player.IncrementLives(collidedHealth->getHealthPoints());
 			}
 			break;
 		}
