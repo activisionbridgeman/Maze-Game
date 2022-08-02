@@ -228,6 +228,7 @@ void GameplayState::HandleCollision(int newPlayerX, int newPlayerY)
 			m_beatLevel = true;
 			break;
 		}
+		// REFACTORED: Only one case is needed for Health and LargeHealth, since they are both of type Health
 		case ActorType::Health:
 		{
 			Health* collidedHealth = dynamic_cast<Health*>(collidedActor);
