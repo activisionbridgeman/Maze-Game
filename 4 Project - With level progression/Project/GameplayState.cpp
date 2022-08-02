@@ -242,20 +242,6 @@ void GameplayState::HandleCollision(int newPlayerX, int newPlayerY)
 			}
 			break;
 		}
-		case ActorType::LargeHealth:
-		{
-			LargeHealth* collidedHealth = dynamic_cast<LargeHealth*>(collidedActor);
-			assert(collidedHealth);
-			AudioManager::GetInstance()->PlayGainLivesSound();
-			collidedHealth->Remove();
-			m_player.SetPosition(newPlayerX, newPlayerY);
-
-			if (m_player.GetLives() < 3)
-			{
-				m_player.IncrementLives(collidedHealth->getHealthPoints());
-			}
-			break;
-		}
 		default:
 			break;
 		}
