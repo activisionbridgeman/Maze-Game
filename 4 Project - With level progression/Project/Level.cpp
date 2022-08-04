@@ -2,6 +2,8 @@
 #include <assert.h>
 #include <iostream>
 #include <fstream>
+#include <chrono>
+#include <thread>
 #include "Level.h"
 #include "Player.h"
 #include "Enemy.h"
@@ -209,6 +211,16 @@ int Level::GetIndexFromCoordinates(int x, int y)
 	return x + y * m_width;
 }
 
+// Moves actors that are movable then pauses for 0.5 seconds
+void Level::MoveActors() 
+{
+	for (auto actor = m_pActors.begin(); actor != m_pActors.end(); ++actor)
+	{
+		(*actor)->Update(); // Update all actors
+	}
+	std::this_thread::sleep_for(std::chrono::microseconds(500000));
+}
+
 // Updates all actors and returns a colliding actor if there is one
 PlacableActor* Level::UpdateActors(int x, int y)
 {
@@ -216,8 +228,6 @@ PlacableActor* Level::UpdateActors(int x, int y)
 
 	for (auto actor = m_pActors.begin(); actor != m_pActors.end(); ++actor)
 	{
-		(*actor)->Update(); // Update all actors
-
 		if (x == (*actor)->GetXPosition() && y == (*actor)->GetYPosition())
 		{
 			// should only be able to collide with one actor

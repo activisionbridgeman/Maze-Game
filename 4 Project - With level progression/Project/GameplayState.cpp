@@ -4,6 +4,7 @@
 #include <conio.h>
 #include <windows.h>
 #include <assert.h>
+#include <thread>
 
 #include "Enemy.h"
 #include "Key.h"
@@ -25,6 +26,9 @@ constexpr int kUpArrow = 72;
 constexpr int kDownArrow = 80;
 constexpr int kEscapeKey = 27;
 
+std::thread UpdateActorsThread;
+bool gameOver;
+
 GameplayState::GameplayState(StateMachineExampleGame* pOwner)
 	: m_pOwner(pOwner)
 	, m_beatLevel(false)
@@ -38,10 +42,27 @@ GameplayState::GameplayState(StateMachineExampleGame* pOwner)
 	m_LevelNames.push_back("Level3.txt");
 }
 
+// Terminate UpdateActorsThread by setting its passing variable to true and joining it
+void TerminateUpdateActorsThread() 
+{
+	gameOver = true;
+	UpdateActorsThread.join();
+}
+
 GameplayState::~GameplayState()
 {
+	TerminateUpdateActorsThread();
 	delete m_pLevel;
 	m_pLevel = nullptr;
+}
+
+// Move actors as long as game is active
+void GameplayState::UpdateActors()
+{
+	while (!gameOver)
+	{
+		m_pLevel->MoveActors();
+	}
 }
 
 bool GameplayState::Load()
@@ -53,9 +74,13 @@ bool GameplayState::Load()
 	}
 
 	m_pLevel = new Level();
+
+	gameOver = false;
+
+	// Initialize UpdateActorsThread
+	UpdateActorsThread = std::thread (&GameplayState::UpdateActors, this);
 	
 	return m_pLevel->Load(m_LevelNames.at(m_currentLevel), m_player.GetXPositionPointer(), m_player.GetYPositionPointer());
-
 }
 
 void GameplayState::Enter()
@@ -67,7 +92,12 @@ bool GameplayState::Update(bool processInput)
 {
 	if (processInput && !m_beatLevel)
 	{
-		int input = _getch();
+		int input = 0;
+
+		// User kbhit to continuously monitor player input
+		if (_kbhit()) {
+			input = _getch();
+		}
 		int arrowInput = 0;
 		int newPlayerX = m_player.GetXPosition();
 		int newPlayerY = m_player.GetYPosition();
@@ -107,15 +137,7 @@ bool GameplayState::Update(bool processInput)
 			m_player.DropKey();
 		}
 
-		// If position never changed
-		if (newPlayerX == m_player.GetXPosition() && newPlayerY == m_player.GetYPosition())
-		{
-			//return false;
-		}
-		else
-		{
-			HandleCollision(newPlayerX, newPlayerY);
-		}
+		HandleCollision(newPlayerX, newPlayerY);
 	}
 	if (m_beatLevel)
 	{
@@ -165,7 +187,6 @@ void GameplayState::HandleCollision(int newPlayerX, int newPlayerY)
 			m_player.DecrementLives();
 			if (m_player.GetLives() < 0)
 			{
-				//TODO: Go to game over screen
 				AudioManager::GetInstance()->PlayLoseSound();
 				m_pOwner->LoadScene(StateMachineExampleGame::SceneName::Lose);
 			}
@@ -226,6 +247,7 @@ void GameplayState::HandleCollision(int newPlayerX, int newPlayerY)
 			collidedGoal->Remove();
 			m_player.SetPosition(newPlayerX, newPlayerY);
 			m_beatLevel = true;
+			TerminateUpdateActorsThread();
 			break;
 		}
 		// REFACTORED: Only one case is needed for Health and LargeHealth, since they are both of type Health
