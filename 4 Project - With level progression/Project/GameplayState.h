@@ -2,6 +2,7 @@
 #include "GameState.h"
 #include "Player.h"
 #include "Level.h"
+#include "Enemy.h"
 
 #include <windows.h>
 #include <vector>
@@ -36,6 +37,7 @@ private:
 	void HandleCollision(int newPlayerX, int newPlayerY);
 	void UpdateActors();
 	void DecreaseTime();
+	void RespawnEnemy(Enemy* collidedEnemy, int x, int y);
 	bool Load();
 	void DrawHUD(const HANDLE& console);
 };

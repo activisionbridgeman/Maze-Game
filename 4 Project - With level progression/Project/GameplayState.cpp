@@ -28,12 +28,14 @@ constexpr int kEscapeKey = 27;
 
 std::thread UpdateActorsThread;
 std::thread DecreaseTimeThread;
+std::vector<std::thread> EnemyRespawnThreads;
 
 bool gameOver;
 time_t currTime;
 
 static const int maxTime = 30; // in seconds
 static const int delayTime = 500000; // in microseconds
+static const int enemyRespawnTime = 3; // in seconds
 
 GameplayState::GameplayState(StateMachineExampleGame* pOwner)
 	: m_pOwner(pOwner)
@@ -48,12 +50,17 @@ GameplayState::GameplayState(StateMachineExampleGame* pOwner)
 	m_LevelNames.push_back("Level3.txt");
 }
 
-// Terminate UpdateActorsThread by setting its passing variable to true and joining it
+// Terminate threads by setting passing variable to true and joining them
 void TerminateThreads() 
 {
 	gameOver = true;
 	UpdateActorsThread.join();
 	DecreaseTimeThread.join();
+
+	for (int i = 0; i < EnemyRespawnThreads.size(); i++) 
+	{
+		EnemyRespawnThreads[i].join();
+	}
 }
 
 GameplayState::~GameplayState()
@@ -97,6 +104,7 @@ bool GameplayState::Load()
 	// Initialize threads
 	UpdateActorsThread = std::thread (&GameplayState::UpdateActors, this);
 	DecreaseTimeThread = std::thread(&GameplayState::DecreaseTime, this);
+	EnemyRespawnThreads.clear();
 
 	currTime = maxTime;
 	
@@ -195,6 +203,20 @@ bool GameplayState::Update(bool processInput)
 	return false;
 }
 
+// Respawn enemy if it is destroyed after enemyRespawnTime seconds
+void GameplayState::RespawnEnemy(Enemy* collidedEnemy, int x, int y)
+{
+	collidedEnemy->Remove();
+
+	time_t prevTime = time(NULL);
+	while (!gameOver && ((time(NULL) - prevTime) < enemyRespawnTime)) { }
+
+	if (!gameOver)
+	{
+		collidedEnemy->Place(x, y);
+	}
+}
+
 void GameplayState::HandleCollision(int newPlayerX, int newPlayerY)
 {
 	PlacableActor* collidedActor = m_pLevel->UpdateActors(newPlayerX, newPlayerY);
@@ -207,7 +229,7 @@ void GameplayState::HandleCollision(int newPlayerX, int newPlayerY)
 			Enemy* collidedEnemy = dynamic_cast<Enemy*>(collidedActor);
 			assert(collidedEnemy);
 			AudioManager::GetInstance()->PlayLoseLivesSound();
-			collidedEnemy->Remove();
+			EnemyRespawnThreads.push_back(std::thread(&GameplayState::RespawnEnemy, this, collidedEnemy, collidedEnemy->GetXPosition(), collidedEnemy->GetYPosition()));
 			m_player.SetPosition(newPlayerX, newPlayerY);
 
 			// Breakpoint placed here to check that it is hit when player collides with enemy
