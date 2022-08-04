@@ -35,6 +35,7 @@ public:
 private:
 	void HandleCollision(int newPlayerX, int newPlayerY);
 	void UpdateActors();
+	void DecreaseTime();
 	bool Load();
 	void DrawHUD(const HANDLE& console);
 };

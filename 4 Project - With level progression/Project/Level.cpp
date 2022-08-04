@@ -16,6 +16,8 @@
 
 using namespace std;
 
+static const int enemyDelayTime = 500000; // in microseconds
+
 Level::Level()
 	: m_pLevelData(nullptr)
 	, m_height(0)
@@ -211,14 +213,14 @@ int Level::GetIndexFromCoordinates(int x, int y)
 	return x + y * m_width;
 }
 
-// Moves actors that are movable then pauses for 0.5 seconds
+// Moves actors that are movable then pauses for enemyDelayTime microseconds
 void Level::MoveActors() 
 {
 	for (auto actor = m_pActors.begin(); actor != m_pActors.end(); ++actor)
 	{
 		(*actor)->Update(); // Update all actors
 	}
-	std::this_thread::sleep_for(std::chrono::microseconds(500000));
+	std::this_thread::sleep_for(std::chrono::microseconds(enemyDelayTime));
 }
 
 // Updates all actors and returns a colliding actor if there is one

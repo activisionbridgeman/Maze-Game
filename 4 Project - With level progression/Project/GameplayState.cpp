@@ -27,7 +27,13 @@ constexpr int kDownArrow = 80;
 constexpr int kEscapeKey = 27;
 
 std::thread UpdateActorsThread;
+std::thread DecreaseTimeThread;
+
 bool gameOver;
+time_t currTime;
+
+static const int maxTime = 30; // in seconds
+static const int delayTime = 500000; // in microseconds
 
 GameplayState::GameplayState(StateMachineExampleGame* pOwner)
 	: m_pOwner(pOwner)
@@ -43,15 +49,16 @@ GameplayState::GameplayState(StateMachineExampleGame* pOwner)
 }
 
 // Terminate UpdateActorsThread by setting its passing variable to true and joining it
-void TerminateUpdateActorsThread() 
+void TerminateThreads() 
 {
 	gameOver = true;
 	UpdateActorsThread.join();
+	DecreaseTimeThread.join();
 }
 
 GameplayState::~GameplayState()
 {
-	TerminateUpdateActorsThread();
+	TerminateThreads();
 	delete m_pLevel;
 	m_pLevel = nullptr;
 }
@@ -62,6 +69,16 @@ void GameplayState::UpdateActors()
 	while (!gameOver)
 	{
 		m_pLevel->MoveActors();
+	}
+}
+
+// Decrease time by one second at a time
+void GameplayState::DecreaseTime() 
+{
+	while (!gameOver) 
+	{
+		currTime--;
+		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
 }
 
@@ -77,8 +94,11 @@ bool GameplayState::Load()
 
 	gameOver = false;
 
-	// Initialize UpdateActorsThread
+	// Initialize threads
 	UpdateActorsThread = std::thread (&GameplayState::UpdateActors, this);
+	DecreaseTimeThread = std::thread(&GameplayState::DecreaseTime, this);
+
+	currTime = maxTime;
 	
 	return m_pLevel->Load(m_LevelNames.at(m_currentLevel), m_player.GetXPositionPointer(), m_player.GetYPositionPointer());
 }
@@ -90,6 +110,14 @@ void GameplayState::Enter()
 
 bool GameplayState::Update(bool processInput)
 {
+	// Lose game if time hits 0
+	if (currTime <= 0)
+	{
+		std::this_thread::sleep_for(std::chrono::microseconds(delayTime));
+		AudioManager::GetInstance()->PlayLoseSound();
+		m_pOwner->LoadScene(StateMachineExampleGame::SceneName::Lose);
+	}
+
 	if (processInput && !m_beatLevel)
 	{
 		int input = 0;
@@ -187,6 +215,7 @@ void GameplayState::HandleCollision(int newPlayerX, int newPlayerY)
 			m_player.DecrementLives();
 			if (m_player.GetLives() < 0)
 			{
+				std::this_thread::sleep_for(std::chrono::microseconds(delayTime));
 				AudioManager::GetInstance()->PlayLoseSound();
 				m_pOwner->LoadScene(StateMachineExampleGame::SceneName::Lose);
 			}
@@ -247,7 +276,7 @@ void GameplayState::HandleCollision(int newPlayerX, int newPlayerY)
 			collidedGoal->Remove();
 			m_player.SetPosition(newPlayerX, newPlayerY);
 			m_beatLevel = true;
-			TerminateUpdateActorsThread();
+			TerminateThreads();
 			break;
 		}
 		// REFACTORED: Only one case is needed for Health and LargeHealth, since they are both of type Health
@@ -320,6 +349,7 @@ void GameplayState::DrawHUD(const HANDLE& console)
 
 	cout << " $:" << m_player.GetMoney() << " " << Level::WAL;
 	cout << " lives:" << m_player.GetLives() << " " << Level::WAL;
+	cout << " time:" << currTime << " " << Level::WAL;
 	cout << " key:";
 	if (m_player.HasKey())
 	{
@@ -339,7 +369,7 @@ void GameplayState::DrawHUD(const HANDLE& console)
 	pos.Y = csbi.dwCursorPosition.Y;
 	SetConsoleCursorPosition(console, pos);
 
-	cout << Level::WAL;
+	//cout << Level::WAL;
 	cout << endl;
 
 	// Bottom Border
